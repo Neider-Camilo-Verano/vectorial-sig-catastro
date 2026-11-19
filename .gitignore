@@ -1,0 +1,11 @@
+# credenciales y entorno local
+.env
+.venv/
+__pycache__/
+*.pyc
+# datos originales (se descargan del DANE/IGAC, ver README)
+*.gdb/
+*.gdb.7z
+*.7z
+*.zip
+*.rar

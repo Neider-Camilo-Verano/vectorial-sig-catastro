@@ -1,0 +1,5 @@
+# Solo para cargar la GDB (no hace falta para ejecutar el visor)
+pyogrio>=0.7
+geopandas>=0.14
+shapely>=2.0
+psycopg[binary]>=3.1

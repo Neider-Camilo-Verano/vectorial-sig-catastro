@@ -1,0 +1,57 @@
+Verificacion API vs SQL - 2026-11-19 11:28
+======================================================================
+
+Base: VECTORIAL
+PostgreSQL 18.7 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+PostGIS 3.7 USE_GEOS=1 USE_PROJ=1 USE_STATS=1
+
+[COINCIDE] Terrenos en la base
+   HTTP : GET /api/salud
+   SQL  : SELECT count(*) FROM catastro.terreno
+   API devuelve : 77918
+   SQL devuelve : 77918
+
+[COINCIDE] F1 terrenos de Calarca (capa de municipios)
+   HTTP : GET /api/municipios
+   SQL  : SELECT count(*) FROM catastro.terreno WHERE municipio_codigo = '63130'
+   API devuelve : 19852
+   SQL devuelve : 19852
+
+[COINCIDE] F1 terrenos dentro de la ventana
+   HTTP : GET /api/capas/terrenos?minx=..&zoom=17
+   SQL  : SELECT count(*) FROM catastro.terreno WHERE geom && ST_Transform(ST_MakeEnvelope(%s,%s,%s,%s,4326),9377)
+   API devuelve : 123
+   SQL devuelve : 123
+
+[COINCIDE] F2 construcciones del terreno 631300100000001430008000000000
+   HTTP : GET /api/terrenos/6313001000000014300080000000000
+   SQL  : SELECT count(*) FROM catastro.construccion WHERE terreno_codigo = '631300100000001430008000000000'
+   API devuelve : 5
+   SQL devuelve : 5
+
+[COINCIDE] F2 veredas llamadas Pedregales
+   HTTP : GET /api/buscar?q=Pedregales&tipo=vereda
+   SQL  : SELECT count(*) FROM catastro.vereda WHERE nombre ILIKE '%Pedregales%'
+   API devuelve : 1
+   SQL devuelve : 1
+
+[COINCIDE] F3 terreno que contiene el punto (ST_Intersects)
+   HTTP : GET /api/terrenos/en-punto?lat=4.52896&lng=-75.64182
+   SQL  : SELECT codigo FROM catastro.terreno WHERE ST_Intersects(geom, ST_Transform(ST_SetSRID(ST_MakePoint(%s,%s),4326),9377)) ORDER BY zona, codigo LIMIT 1
+   API devuelve : 631300100000001430008000000000
+   SQL devuelve : 631300100000001430008000000000
+
+[COINCIDE] F3 construcciones a menos de 100 m (ST_DWithin, metros)
+   HTTP : GET /api/cercanos?lat=4.52896&lng=-75.64182&radio=100&capa=construcciones
+   SQL  : SELECT count(*) FROM catastro.construccion WHERE ST_DWithin(geom, ST_Transform(ST_SetSRID(ST_MakePoint(%s,%s),4326),9377), 100)
+   API devuelve : 297
+   SQL devuelve : 297
+
+[COINCIDE] F4 construcciones de Calarca (estadisticas)
+   HTTP : GET /api/estadisticas/63130
+   SQL  : SELECT count(*) FROM catastro.construccion WHERE municipio_codigo = '63130'
+   API devuelve : 26480
+   SQL devuelve : 26480
+
+======================================================================
+Resultado: 8 coinciden, 0 difieren
